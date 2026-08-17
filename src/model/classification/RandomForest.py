@@ -41,10 +41,10 @@ class _DecisionTree:
         feat_idxs = np.random.choice(n_feats, self.n_features, replace=False)
 
         # find the best split
-        best_feature, best_threshold = self.__best_split(X, y, feat_idxs)
+        best_feature, best_threshold = self._best_split(X, y, feat_idxs)
 
         # create child nodes
-        left_idx, right_idx = self.__split(X[:, best_feature], best_threshold)
+        left_idx, right_idx = self._split(X[:, best_feature], best_threshold)
         left = self._grow_tree(X[left_idx, :], y[left_idx], depth + 1)
         right = self._grow_tree(X[right_idx, :], y[right_idx], depth + 1)
         return _Node(best_feature, best_threshold, left, right)
@@ -80,7 +80,7 @@ class _DecisionTree:
         # calculate the entropy of the children
         n = len(y)
         n_left, n_right = len(left_idx), len(right_idx)
-        e_left, e_right = self.entropy(y[left_idx]), self.__entropy(y[right_idx])
+        e_left, e_right = self._entropy(y[left_idx]), self._entropy(y[right_idx])
         child_entropy = (n_left / n) * e_left + (n_right / n ) * e_right
 
         # calculate the information gain
@@ -97,10 +97,14 @@ class _DecisionTree:
         hist = np. bincount(y)
         ps = hist / len(y)
 
+        entropy = 0
+
+
         for p in ps: 
             if p > 0:
-                p * np.log(p) 
-        return -np.sum(p)
+                entropy += p * np.log(p) 
+
+        return -entropy
 
 
     def _most_common_label(self, y):
@@ -118,8 +122,8 @@ class _DecisionTree:
             return node.value
 
         if x[node.feature] <= node.threshold:
-            return self.__traverse_tree(x, node.left)
-        return self.__traverse_tree(x, node.right)
+            return self._traverse_tree(x, node.left)
+        return self._traverse_tree(x, node.right)
 
 
 class RandomForest(VehicleClassifierStrategy):
