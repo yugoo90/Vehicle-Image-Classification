@@ -26,7 +26,7 @@ class _DecisionTree:
     
     def fit(self, X, y):
         self.n_features = X.shape[1] if not self.n_features else min(self.n_features, X.shape[1])
-        self.root = self.grow_tree(X, y)
+        self.root = self._grow_tree(X, y)
 
 
     def _grow_tree(self, X, y, depth = 0):
@@ -45,21 +45,21 @@ class _DecisionTree:
 
         # create child nodes
         left_idx, right_idx = self.__split(X[:, best_feature], best_threshold)
-        left = self.__grow_tree(X[left_idx, :], y[left_idx], depth + 1)
-        right = self.__grow_tree(X[right_idx, :], y[right_idx], depth + 1)
+        left = self._grow_tree(X[left_idx, :], y[left_idx], depth + 1)
+        right = self._grow_tree(X[right_idx, :], y[right_idx], depth + 1)
         return _Node(best_feature, best_threshold, left, right)
 
-    def __best_split(self, X, y, feat_idxs):
+    def _best_split(self, X, y, feat_idxs):
         best_gain = -1
         split_idx, split_threshold = None, None
 
-        for feat_idx, in feat_idxs: 
+        for feat_idx in feat_idxs: 
             X_column = X[:, feat_idx]
             thresholds = np.unique(X_column)
 
             for thr in thresholds:
                 # calculate the informaion gain
-                gain = self.__information_gain
+                gain = self._information_gain(y, X_column, thr)
 
                 if gain > best_gain:
                     best_gain = gain
@@ -68,12 +68,12 @@ class _DecisionTree:
 
         return split_idx, split_threshold
 
-    def __information_gain(self, y, X_column, threshold):
+    def _information_gain(self, y, X_column, threshold):
         # parent entropy
-        parent_entropy = self.entropy(y)
+        parent_entropy = self._entropy(y)
 
         # create children
-        left_idx, right_idx = self.split(X_column, threshold)
+        left_idx, right_idx = self._split(X_column, threshold)
         if len(left_idx) == 0 or len (right_idx) == 0:
             return 0
 
@@ -87,13 +87,13 @@ class _DecisionTree:
         return parent_entropy - child_entropy
 
 
-    def __split(self, X_column, threshold):
+    def _split(self, X_column, threshold):
         left_idxs = np.argwhere(X_column <= threshold).flatten()
         right_idxs = np.argwhere(X_column > threshold).flatten()
         return left_idxs, right_idxs
 
 
-    def __entropy(self, y):
+    def _entropy(self, y):
         hist = np. bincount(y)
         ps = hist / len(y)
 
@@ -103,17 +103,17 @@ class _DecisionTree:
         return -np.sum(p)
 
 
-    def __most_common_label(self, y):
+    def _most_common_label(self, y):
         counter = Counter(y)
-        value = counter.most_commoon(1)[0][0]
+        value = counter.most_common(1)[0][0]
         return value
 
 
     def predict(self, X):
-       return np.array([self.traverse_tree(x, self.root) for x in X])
+       return np.array([self._traverse_tree(x, self.root) for x in X])
        
 
-    def __traverse_tree(self, x, node):
+    def _traverse_tree(self, x, node):
         if node.is_leaf_node():
             return node.value
 
@@ -134,7 +134,7 @@ class RandomForest(VehicleClassifierStrategy):
     def fit(self, X, y):
         self.trees = []
         for _ in range(self.n_trees):
-            tree = DecisionTree(max_depth = self.max_depth, min_samples_split = self.min_samples_split, n_features = self.n_features)
+            tree = _DecisionTree(max_depth = self.max_depth, min_samples_split = self.min_samples_split, n_features = self.n_features)
             X_sample, y_sample = self._bootstrap_samples(X, y)    
             tree.fit(X_sample, y_sample)
             self.trees.append(tree)
