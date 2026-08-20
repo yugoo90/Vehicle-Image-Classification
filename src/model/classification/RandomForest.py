@@ -1,4 +1,5 @@
 from turtle import left
+from typing import Any
 import numpy as np
 from model.classification.VehicleClassifierStrategy import VehicleClassifierStrategy
 from collections import Counter
@@ -94,11 +95,10 @@ class _DecisionTree:
 
 
     def _entropy(self, y):
-        hist = np. bincount(y)
+        hist = np.bincount(y)
         ps = hist / len(y)
 
         entropy = 0
-
 
         for p in ps: 
             if p > 0:
